@@ -21,6 +21,7 @@ import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
 import org.datavec.api.split.FileSplit;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
+import org.deeplearning4j.eval.Evaluation;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
 import com.google.common.collect.Lists;
@@ -121,11 +122,11 @@ public class BP_NetworkTest
 	        	bpnn.load(saveFile);
 	        }
 	        else {
-		        bpnn.buildNetwork(snc);
 		        bpnn.train(trainIter, snc.getNumEpochs(),false);
 	        }
 	        //1295 5x
-	        bpnn.validate(testIter, labelNum,false);
+	        Evaluation eval = bpnn.validate(testIter, labelNum,false);
+	        System.out.println(eval);
 	        if(saveFile != null) {
 	        	bpnn.save(saveFile);
 	        }

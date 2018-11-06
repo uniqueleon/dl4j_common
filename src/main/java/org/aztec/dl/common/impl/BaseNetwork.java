@@ -92,7 +92,6 @@ public abstract class BaseNetwork implements ArtificialNeuralNetwork {
 
 			eval.eval(next.getLabels(), output); // check the prediction against the true class
 		}
-		System.out.println(eval.stats());
 		return eval;
 	}
 
