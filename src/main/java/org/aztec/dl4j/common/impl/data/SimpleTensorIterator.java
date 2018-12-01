@@ -30,12 +30,51 @@ public class SimpleTensorIterator implements DataSetIterator {
 		preprocessor = new NormalizerStandardize();
 	}
 	
+	
+	public SimpleTensorIterator(List<Double[]> features,List<Double[]> labelDatas,List<String> labelNames,int batch) {
+		init(toDoubleArray(features),toDoubleArray(labelDatas),labelNames,batch);
+	}
+	
+	public void appendDataSet(List<Double[]> features,List<Double[]> labelDatas) {
+		datas.add(getDataSet(toDoubleArray(features),toDoubleArray(labelDatas)));
+		trainningDatas = datas.iterator();
+	}
+	
+
+	private double[][] toDoubleArray(List<Double[]> dataList){
+		double[][] retArray = new double[dataList.size()][];
+		for(int i = 0;i < dataList.size();i++) {
+			Double[] dataListArray = dataList.get(i);
+			double[] doubleArray = new double[dataListArray.length];
+			for(int j = 0; j < dataListArray.length;j++) {
+				doubleArray[j] = dataListArray[j].doubleValue();
+			}
+			retArray[i] = doubleArray;
+		}
+		return retArray;
+	}
+	
+	public SimpleTensorIterator(double[][] features,double[][] labelDatas,List<String> labelNames,int batch) {
+		init(features,labelDatas,labelNames,batch);
+	}
+	
 	public SimpleTensorIterator(NetworkInput input) {
 		init(Lists.newArrayList(input),1);
 	}
 
 	public SimpleTensorIterator(List<NetworkInput> inputs,int batch) {
 		init(inputs,batch);
+	}
+	
+	private void init(double[][] features,double[][] lables,List<String> labelNames,int batch) {
+		List<DataSet> dataList = Lists.newArrayList();
+		inputNums = features.length;
+		dataList.add(getDataSet(features, lables));
+		trainningDatas = dataList.iterator();
+		this.batch = batch;
+		datas = Lists.newArrayList();
+		datas.addAll(dataList);
+		preprocessor = new NormalizerStandardize();
 	}
 	
 	private void init(List<NetworkInput> inputs,int batch) {

@@ -21,6 +21,7 @@ public interface NetworkConfiguration {
 	public void init() throws ArtificialNeuralNetworkException;
 	public NetworkConfigurationType getConfigType();
 	public void setBiases(double[] biases);
+	public void setLayerNum(int layNum);
 	public void setActivations(Activation[] activations);
 	public void setLossFunction(LossFunction lossFunction);
 	public void setWeightInits(WeightInit[] weightInits);

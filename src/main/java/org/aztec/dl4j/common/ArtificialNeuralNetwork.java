@@ -14,4 +14,5 @@ public interface ArtificialNeuralNetwork {
 	public void save(File file) throws IOException;
 	public void load(File file) throws IOException;
 	public Evaluation validate(DataSetIterator dataSet,int outputNum,boolean normalized) throws ArtificialNeuralNetworkException;
+	public String toJson();
 }

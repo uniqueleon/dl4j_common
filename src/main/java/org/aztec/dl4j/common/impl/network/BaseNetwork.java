@@ -101,4 +101,10 @@ public abstract class BaseNetwork implements ArtificialNeuralNetwork {
 		return NormalizeUtils.transform(trainningDatas);
 	}
 
+	public String toJson() {
+		// TODO Auto-generated method stub
+		return network.getLayerWiseConfigurations().toJson();
+	}
+
+	
 }

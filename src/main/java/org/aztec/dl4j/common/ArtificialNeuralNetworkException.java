@@ -11,7 +11,9 @@ public class ArtificialNeuralNetworkException extends Exception{
 		L2_REGULARIZATION_CONFIG_ERROR("CONF_E_05"),
 		NETWORK_CONFIG_ERROR("CONF_E_06"),
 		NETWORK_NOT_BUILD("NW_E_01"),
-		IO_ERROR("IO_E_01");
+		IO_ERROR("IO_E_01"),
+		CONVERT_ERROR("IO_E_02"),
+		TRAIN_FAIL("NW_E_02");
 		
 		
 		private ErrorCode(String code) {

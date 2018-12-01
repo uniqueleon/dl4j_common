@@ -53,8 +53,11 @@ public class AutomaticBPNetwork extends BaseNetwork{
         		autoConfig.getRatioRanges()[1]);  //Values will be generated uniformly at random between 0.0001 and 0.1 (inclusive)
         ParameterSpace<Integer> layerSizeHyperparam = new IntegerParameterSpace(autoConfig.getHiddenLayerNeuronNumRanges()[0],
         		autoConfig.getHiddenLayerNeuronNumRanges()[1]);            //Integer values will be generated uniformly at random between 16 and 256 (inclusive)
+        ParameterSpace<Double> biasHyperparam = new ContinuousParameterSpace(autoConfig.getBiasRanges()[0],
+        		autoConfig.getBiasRanges()[1]);
         Builder spaceBuilder = new MultiLayerSpace.Builder()//These next few options: fixed values for all models
                 .weightInit(WeightInit.XAVIER)
+                .l1(autoConfig.getL1())
                 .l2(autoConfig.getL2())
                 //Learning rate hyperparameter: search over different values, applied to all models
                 .updater(new SgdSpace(learningRateHyperparam));
@@ -67,6 +70,8 @@ public class AutomaticBPNetwork extends BaseNetwork{
                         .nIn(layer.getInputNum())  
                         .activation(layer.getActiavtion())
                         .nOut(layerSizeHyperparam)
+                        .biasInit(biasHyperparam)
+                        .weightInit(layer.getWeightInit())
                         .build());
         	}
         	else {
@@ -75,24 +80,27 @@ public class AutomaticBPNetwork extends BaseNetwork{
                 	spaceBuilder = spaceBuilder.addLayer(new DenseLayerSpace.Builder()
                             .activation(layer.getActiavtion())
                             .nOut(layerSizeHyperparam)
+                            .biasInit(biasHyperparam)
+                            .weightInit(layer.getWeightInit())
                             .build());
                 	break;
             	case OUTPUT:
 
                 	spaceBuilder = spaceBuilder.addLayer(new OutputLayerSpace.Builder()
                             .nOut(layer.getOutputNum())
+                            .biasInit(biasHyperparam)
                             .activation(layer.getActiavtion())
                             .lossFunction(layer.getLossFunction())
+                            .weightInit(layer.getWeightInit())
                             .build());
                 	break;
             	}
         	}
         }
 
-        MultiLayerSpace hyperparameterSpace = spaceBuilder.numEpochs(10).build();
+        MultiLayerSpace hyperparameterSpace = spaceBuilder.numEpochs(150).build();
 
         CandidateGenerator candidateGenerator = new RandomSearchGenerator(hyperparameterSpace, null);    
-
         File f = autoConfig.getWorkingDir();
         if (f.exists()) f.delete();
         f.mkdir();

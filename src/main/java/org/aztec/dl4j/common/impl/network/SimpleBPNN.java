@@ -13,6 +13,7 @@ import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.learning.config.Nesterovs;
 
 public class SimpleBPNN extends BaseNetwork{
@@ -36,6 +37,7 @@ public class SimpleBPNN extends BaseNetwork{
 				.biasInit(networkConfig.getBias())
                 .updater(new Nesterovs(networkConfig.getLearningRatio(), networkConfig.getMomentum()))
                 //.activation(Activation.ELU)
+                .l1(networkConfig.getL1())
                 .l2(networkConfig.getL2())
                 .list();
 		
