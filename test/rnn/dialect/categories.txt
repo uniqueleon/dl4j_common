@@ -1,0 +1,2 @@
+0,cantonese
+1,mandarin

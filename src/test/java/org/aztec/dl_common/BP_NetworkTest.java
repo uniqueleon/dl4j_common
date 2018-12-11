@@ -16,10 +16,12 @@ import org.aztec.dl4j.common.NetworkConfiguration;
 import org.aztec.dl4j.common.impl.conf.AutomaticNetwokConfiguration;
 import org.aztec.dl4j.common.impl.conf.SimpleNetworkConfiguration;
 import org.aztec.dl4j.common.impl.data.CSVDataFileInfo;
+import org.aztec.dl4j.common.impl.data.CSVDataSource;
 import org.aztec.dl4j.common.utils.TrainningUtils;
 import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
 import org.datavec.api.split.FileSplit;
+import org.deeplearning4j.arbiter.optimize.api.data.DataSource;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -37,36 +39,38 @@ public class BP_NetworkTest
 	private static final Random random = new Random();
 	private static final int inputNum = 5;
 	private static final int labelNum = 5;
-	private static double[] ratioRanges = new double[] {0.001,0.1};
-	private static int[] neuronNumRanges = new int[] {1,3000};
-	private static File workingDir = new File("test/arbiter");
-	private static long timeout = 100000;
-	private static int maxCandidateNum = 1000;
 	private static File trainningFile = new File("test/csv/test_classfy_1.csv");
 	private static File testFile = new File("test/csv/test_classfy_2.csv");
 	
 	public static void main(String[] args) {
 		//generateData();
-		//train(trainningFile,testFile,null);
-		testAutomaticBuildNetwork();
+		train(trainningFile,testFile,null);
+		//testAutomaticBuildNetwork();
 	}
 	
 	private static void testAutomaticBuildNetwork() {
+
+		double[] ratioRanges = new double[] {0.5,0.6};
+		int[] neuronNumRanges = new int[] {1294,1296};
+		File workingDir = new File("test/arbiter");
+		long timeout = 100000;
+		int maxCandidateNum = 1000;
 		int batchSize = 50;
 		int labelIndex = 0;
 		int numEpochs = 50;
 		try {
-			DataSetIterator trainDatas = TrainningUtils.csvToDataSet(new CSVDataFileInfo(trainningFile, batchSize, labelIndex, labelNum));
-			DataSetIterator testDatas = TrainningUtils.csvToDataSet(new CSVDataFileInfo(testFile, batchSize, labelIndex, labelNum));
 			Properties props = new Properties();
 			props.setProperty("minibatchSize", "" + batchSize);
-			NetworkConfiguration networkConfig = new AutomaticNetwokConfiguration(
+			DataSource ds = new CSVDataSource(new CSVDataFileInfo(trainningFile, batchSize, labelIndex, labelNum),
+					new CSVDataFileInfo(testFile, batchSize, labelIndex, labelNum), props);
+			AutomaticNetwokConfiguration networkConfig = new AutomaticNetwokConfiguration(
 					inputNum, labelNum, ratioRanges, neuronNumRanges, workingDir, timeout, maxCandidateNum,
-					trainDatas, testDatas, props);
+					ds);
+			networkConfig.setBiasRanges(new double[] {0.8,0.9});
+			networkConfig.setLayerNum(2);
 			ArtificialNeuralNetwork ann = AritificialNerualNetworkFactory.build(networkConfig);
-			ann.buildNetwork(networkConfig);
-			ann.train(trainDatas, numEpochs, false);
-			ann.validate(testDatas, labelNum, false);
+			ann.train((DataSetIterator)ds.trainData(), labelNum, true);
+			System.out.println(ann.validate((DataSetIterator)ds.testData(), labelNum, true));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -101,20 +105,17 @@ public class BP_NetworkTest
 	public static void train(File trainFile,File testFile,File saveFile) {
 		try {
 			int batchSize = 50;
-			RecordReader rr = new CSVRecordReader();
-			rr.initialize(new FileSplit(trainFile));
 
-	        DataSetIterator trainIter = new RecordReaderDataSetIterator(rr,batchSize,0,labelNum);
-			RecordReader rr2 = new CSVRecordReader();
-			rr2.initialize(new FileSplit(testFile));
-	        DataSetIterator testIter = new RecordReaderDataSetIterator(rr2,batchSize,0,labelNum);
+	        DataSetIterator trainIter = TrainningUtils.csvToDataSet(new CSVDataFileInfo(trainFile, batchSize, 0, labelNum));
+	        DataSetIterator testIter = TrainningUtils.csvToDataSet(new CSVDataFileInfo(testFile, batchSize, 0, labelNum));
 	        SimpleNetworkConfiguration snc = new SimpleNetworkConfiguration(inputNum, labelNum);
 
 	        snc.setNeuronNums(new int[] {1295});
 	        snc.setLayerNum(1);
 	        //snc.setBias(0.201);
-	        snc.setLearningRatio(0.5);
-	        snc.setBiases(new double[] {0.08,0.088,1});
+	        snc.setLearningRatio(0.5792972893331771);
+	        //snc.setBiases(new double[] {0.08,0.088,1});
+	        snc.setBiases(new double[] {0.8559749159474366,0.8559749159474366,0.8559749159474366});
 	        snc.setMomentum(0.001);
 	        snc.setNumEpochs(150);
 	        ArtificialNeuralNetwork bpnn = AritificialNerualNetworkFactory.build(snc);
@@ -122,14 +123,18 @@ public class BP_NetworkTest
 	        	bpnn.load(saveFile);
 	        }
 	        else {
-		        bpnn.train(trainIter, snc.getNumEpochs(),false);
+	        	long curTime = System.currentTimeMillis();
+		        bpnn.train(trainIter, snc.getNumEpochs(),true);
+		        long usedTime = System.currentTimeMillis() - curTime;
+		        System.out.println("Train use time:" + usedTime);
 	        }
 	        //1295 5x
-	        Evaluation eval = bpnn.validate(testIter, labelNum,false);
+	        Evaluation eval = bpnn.validate(testIter, labelNum,true);
 	        System.out.println(eval);
 	        if(saveFile != null) {
 	        	bpnn.save(saveFile);
 	        }
+	        System.out.println(bpnn.toJson());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

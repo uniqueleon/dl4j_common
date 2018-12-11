@@ -39,12 +39,17 @@ public class App {
 
 	public static void main(String[] args) {
 		try {
-			autoencoderSample();
-		} catch (IOException e) {
+			//autoencoderSample();
+			calculate();
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
+	}
+	
+	private static void calculate() {
+		
 	}
 
 
